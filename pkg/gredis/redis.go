@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
-var redisClient *redis.Client
-var ctx = context.Background()
+var (
+	redisClient *redis.Client
+	ctx = context.Background()
+)
 
 func NewRedis () *redis.Client {
 	return redis.NewClient(&redis.Options{
@@ -27,23 +29,6 @@ func SetUp () {
 
 func CloseRedis () {
 	redisClient.Close()
-}
-
-
-var lockKeyPrefix = "lock:shop:"
-
-
-func TryLock (key string)  bool {
-	log.Println("lock key: ", key)
-	return  redisClient.SetNX(ctx, key, "1", time.Second * 20).Val()
-
-}
-
-func LockFree (key string) {
-	err := redisClient.Del(ctx, key).Err()
-	if err != nil {
-		panic(err.Error())
-	}
 }
 
 
