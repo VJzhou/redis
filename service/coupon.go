@@ -37,3 +37,5 @@ func IsExistsCo (cid, uid int ) bool {
 	return co.Id > 0
 }
 
+
+

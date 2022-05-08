@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"redis/model"
@@ -100,7 +101,7 @@ func AddCouponOrder (ctx *gin.Context) {
 	}
 
 	lockKey := fmt.Sprintf(gredis.COUPON_UID_LOCK, 2)
-	drl := gredis.NewDisRedisLock(lockKey, "1", time.Second * 2)
+	drl := gredis.NewDisRedisLock(lockKey, uuid.NewString(), time.Second * 2)
 	if !drl.TryLock() {
 		appG.Response(http.StatusBadRequest,"失败", struct {}{})
 		return
@@ -112,7 +113,7 @@ func AddCouponOrder (ctx *gin.Context) {
 		return
 	}
 	insertId, err := service.AddCouponOrder(id)
-	drl.LockFree()
+	drl.AtomLockFree()
 	if err != nil {
 		appG.Response(http.StatusBadRequest, err.Error(),  struct{}{})
 		return
