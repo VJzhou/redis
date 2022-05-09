@@ -70,7 +70,7 @@ func (drl *disRedisLock) LockFree () {
 //线程3-------------------------------------------------------------------------------------------获取锁ok-----执行
 func (drl *disRedisLock) AtomLockFree () {
 	var luaScript = redis.NewScript(`
-		local getVal = redis.call('get', KEY[1])
+		local getVal = redis.call('get', KEYS[1])
 		local val = ARGV[1]
 		if getVal == val then
 			redis.call("del", KEYS[1])
@@ -79,7 +79,7 @@ func (drl *disRedisLock) AtomLockFree () {
 
 	keys := []string{drl.Key}
 	argv := []string{fmt.Sprint(drl.Val)}
-	err := luaScript.Run(ctx, redisClient, keys, argv).Err()
+	_, err := RunLuaScript(luaScript, keys, argv)
 	if err != nil {
 		log.Println(err.Error())
 	}

@@ -31,6 +31,13 @@ func CloseRedis () {
 	redisClient.Close()
 }
 
+func RunLuaScript (s *redis.Script, keys []string, argv interface{}) (interface{}, error) {
+	return  s.Run(ctx, redisClient, keys, argv).Result()
+}
+
+func NewOrderId () {
+
+}
 
 func Shop2Redis (db *sql.DB, shopID string) (*model.RedisShop, error) {
 	var shop model.RedisShop

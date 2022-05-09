@@ -12,7 +12,7 @@ func InitRouter() *gin.Engine {
 
 	apiv1 := r.Group("/api/v1")
 	{
-		apiv1.POST("/seckill", v1.AddCouponOrder)
+		apiv1.POST("/seckill", v1.AddCouponOrderV2)
 	}
 	//apiv1.Use(){
 	//
