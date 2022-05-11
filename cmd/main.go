@@ -4,13 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"redis/model"
-	"redis/pkg/gredis"
 	"redis/routers"
+	"redis/service"
 )
 
 func init () {
 	model.Setup()
-	gredis.SetUp()
+	//gredis.SetUp()
 }
 
 func main () {
@@ -101,6 +101,13 @@ func main () {
 	//		"data" : shop,
 	//	})
 	//})
+
+	cc := service.NewCC()
+	// 从redis stream 获取消息
+	go cc.ConsumerEvents()
+	go cc.ConsumerPendingEvents()
+
+
 	routerInit := routers.InitRouter()
 
 	server := &http.Server{

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+
 var (
 	COUPON_UID_LOCK = "coupon:lock:%d"
 )
@@ -70,19 +71,14 @@ func (drl *disRedisLock) LockFree () {
 //线程3-------------------------------------------------------------------------------------------获取锁ok-----执行
 func (drl *disRedisLock) AtomLockFree () {
 	var luaScript = redis.NewScript(`
-		local getVal = redis.call('get', KEYS[1])
-		local val = ARGV[1]
-		if getVal == val then
+		if redis.call('get', KEYS[1]) == ARGV[1] then
 			redis.call("del", KEYS[1])
 		end
     `)
-
 	keys := []string{drl.Key}
 	argv := []string{fmt.Sprint(drl.Val)}
-	_, err := RunLuaScript(luaScript, keys, argv)
-	if err != nil {
-		log.Println(err.Error())
-	}
+	// 锁删除成功， 或者锁自动过期.....
+	_, _ = RunLuaScript(luaScript, keys, argv)
 }
 
 // todo 分段锁->解决分布式锁的性能

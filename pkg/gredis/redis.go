@@ -23,6 +23,10 @@ func NewRedis () *redis.Client {
 	})
 }
 
+func init () {
+	SetUp()
+}
+
 func SetUp () {
 	redisClient = NewRedis()
 }
@@ -32,11 +36,59 @@ func CloseRedis () {
 }
 
 func RunLuaScript (s *redis.Script, keys []string, argv interface{}) (interface{}, error) {
-	return  s.Run(ctx, redisClient, keys, argv).Result()
+	return  s.Run(ctx,redisClient, keys, argv).Result()
 }
 
 func NewOrderId () {
 
+}
+
+func CreateStreamGroup (key, groupName, start string, mkStream bool) {
+	var err error
+	if mkStream {
+		err = redisClient.XGroupCreateMkStream(ctx, key, groupName, start).Err()
+	} else {
+		err = redisClient.XGroupCreate(ctx, key, groupName, start).Err()
+	}
+	if err != nil {
+		log.Println("create group failed: ",err.Error())
+	}
+}
+
+func ConsumerGroup (groupName , consumerName string, streams []string, consumerCount int64) *redis.XStreamSliceCmd{
+	return redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
+		Group:    groupName,
+		Consumer: consumerName,
+		Streams:  streams,
+		Count:    consumerCount,
+		Block:    0,
+		NoAck:    false,
+	})
+
+}
+
+func ConsumerPendingGroup (key, groupName, start, end string, count int64 ) ([]redis.XPendingExt, error) {
+	return redisClient.XPendingExt(ctx, &redis.XPendingExtArgs{
+		Stream:   key,
+		Group:    groupName,
+		Start:    start,
+		End:      end,
+		Count:    count,
+	}).Result()
+}
+
+func ClaimMessage (key, groupName, consumer string, mi time.Duration, messages []string ) *redis.XMessageSliceCmd{
+	return redisClient.XClaim(ctx, &redis.XClaimArgs{
+		Stream:   key,
+		Group:    groupName,
+		Consumer: consumer,
+		MinIdle:  mi,
+		Messages: messages,
+	})
+}
+
+func MessageAck (key, groupName, messageId string ) (int64, error) {
+	return  redisClient.XAck(ctx, key,groupName, messageId).Result()
 }
 
 func Shop2Redis (db *sql.DB, shopID string) (*model.RedisShop, error) {
