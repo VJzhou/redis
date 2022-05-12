@@ -1,0 +1,51 @@
+version: "3"
+
+networks:
+   redis-replication:
+      driver: bridge
+      ipam:
+         config:
+          - subnet: 172.25.0.0/24
+
+services:
+   master:
+      image: redis
+      container_name: redis-master
+      ports:
+         - "6379:6379"
+      volumes:
+         - "./master/redis.conf:/etc/redis.conf"
+         - "./master/data:/data"
+      command : ["redis-server", "/etc/redis.conf"]
+      restart: always
+      networks:
+         redis-replication:
+            ipv4_address: 172.25.0.101
+   slave1:
+      image: redis
+      container_name: redis-slave-1
+      ports:
+         - "6378:6379"
+      volumes:
+         - "./slave1/redis.conf:/etc/redis.conf"
+         - "./slave1/data:/data"
+      command: ["redis-server", "/etc/redis.conf"]
+      restart: always
+      networks:
+         redis-replication:
+            ipv4_address: 172.25.0.102
+
+   slave2:
+      image: redis
+      container_name: redis-slave-2
+      ports:
+         - "6377:6379"
+      volumes:
+         - "./slave2/redis.conf:/etc/redis.conf"
+         - "./slave2/data:/data"
+      command: ["redis-server", "/etc/redis.conf"]
+      restart: always
+      networks:
+         redis-replication:
+            ipv4_address: 172.25.0.103
+
